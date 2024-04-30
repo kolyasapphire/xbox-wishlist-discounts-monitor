@@ -56,6 +56,8 @@ const job = async () => {
     ".w-75.media-body > div > div:first-child",
   );
 
+  console.debug("Parsed", name, "games");
+
   const kv = await Deno.openKv();
 
   for (const game of games) {
@@ -70,10 +72,16 @@ const job = async () => {
       .map(Number.parseFloat);
 
     // Already free or has gifting restrictions
-    if (priceRaw.text.includes("not eligible") || !prices.length) continue;
+    if (priceRaw.text.includes("not eligible") || !prices.length) {
+      console.debug(name, "not eligible");
+      continue;
+    }
 
     // Regular price
-    if (prices.length === 1) continue;
+    if (prices.length === 1) {
+      console.debug(name, "no discount");
+      continue;
+    }
 
     const discount = Math.round((1 - prices[1] / prices[0]) * 100);
 
@@ -89,6 +97,9 @@ const job = async () => {
         );
         await kv.set([`${name}-${discount}`], true);
       }
+      console.debug(name, "discounted", `${discount}%`, "sent notification");
+    } else {
+      console.debug(name, "discounted", `${discount}%`, "already notified");
     }
   }
 };

@@ -104,4 +104,4 @@ const job = async () => {
   }
 };
 
-Deno.cron("job", "0 16 * * *", job);
+Deno.cron("job", "*/5 * * * *", job);

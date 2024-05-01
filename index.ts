@@ -75,7 +75,7 @@ const job = async () => {
     ".w-75.media-body > div > div:first-child",
   );
 
-  console.debug("Parsed", name, "games");
+  console.debug("Parsed", games.length, "games");
 
   const kv = await Deno.openKv();
 

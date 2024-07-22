@@ -84,6 +84,10 @@ const job = async () => {
 
     const [name, publisher, priceRaw] = [info[0].text, info[1].text, info[2]];
 
+    const linkEl = info[0].querySelector("a");
+    // biome-ignore lint: can't be without a link
+    const link = linkEl!.getAttribute("href");
+
     const prices = priceRaw
       .querySelectorAll("span")
       .map((x) => x.text)
@@ -111,6 +115,8 @@ const job = async () => {
             `${name} by ${publisher}`,
             "", // spacer
             `${discount}% ($${prices[0]} -> $${prices[1]})`,
+            "", // spacer
+            link,
           ].join("\n"),
           { parse_mode: "HTML" },
         );

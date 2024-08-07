@@ -120,7 +120,9 @@ const job = async () => {
           ].join("\n"),
           { parse_mode: "HTML" },
         );
-        await kv.set([`${name}-${discount}`], true);
+        await kv.set([`${name}-${discount}`], true, {
+          expireIn: 60 * 60 * 24 * 7 * 1000, // 7 days expiry
+        });
       }
       console.debug(name, "discounted", `${discount}%`, "sent notification");
     } else {

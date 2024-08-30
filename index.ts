@@ -65,15 +65,26 @@ const job = async () => {
 
   const rows = parsed.querySelector("#PageContent > div > div > div");
 
+  const kv = await Deno.openKv();
+
   // HTML has changed
-  if (!rows) return;
+  if (!rows) {
+    // Notify in channel and pause running via kv for some time
+    if (!(await kv.get(["broken"])).value) {
+      await sendMessage("Parsing broke :(", { parse_mode: "HTML" });
+      await kv.set(["broken"], true, {
+        expireIn: 60 * 60 * 24 * 3 * 1000, // 3 days expiry
+      });
+    } else {
+      console.debug("already notified that parsing broke");
+    }
+
+    return;
+  }
 
   const games = rows.querySelectorAll("div > div > div:nth-child(2)");
 
-
   console.debug("Parsed", games.length, "games");
-
-  const kv = await Deno.openKv();
 
   for (const game of games) {
     const info = game.querySelectorAll("*");

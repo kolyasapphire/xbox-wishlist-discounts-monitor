@@ -63,30 +63,24 @@ const job = async () => {
   const text = await res.text();
   const parsed = parse(text);
 
-  const rows = parsed.querySelector("#PageContent div div");
+  const rows = parsed.querySelector("#PageContent > div > div > div");
 
   // HTML has changed
   if (!rows) return;
 
-  // Heading is not needed
-  rows.removeChild(rows.childNodes[0]);
+  const games = rows.querySelectorAll("div > div > div:nth-child(2)");
 
-  const games = rows.querySelectorAll(
-    ".w-75.media-body > div > div:first-child",
-  );
 
   console.debug("Parsed", games.length, "games");
 
   const kv = await Deno.openKv();
 
   for (const game of games) {
-    const info = game.querySelectorAll(".row");
+    const info = game.querySelectorAll("*");
 
     const [name, publisher, priceRaw] = [info[0].text, info[1].text, info[2]];
 
-    const linkEl = info[0].querySelector("a");
-    // biome-ignore lint: can't be without a link
-    const link = linkEl!.getAttribute("href");
+    const link = info[0].getAttribute("href");
 
     const prices = priceRaw
       .querySelectorAll("span")

@@ -41,7 +41,7 @@ const job = async () => {
   }
 
   const res = await fetch(
-    `https://www.xbox.com/en-US/wishlist/${WISHLIST_ID}`,
+    `https://www.xbox.com/en-GB/wishlist/${WISHLIST_ID}`,
     {
       headers: {
         Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -95,7 +95,7 @@ const job = async () => {
     const prices = priceRaw
       .querySelectorAll('span')
       .map((x) => x.text)
-      .map((x) => x.split('$')[1])
+      .map((x) => x.split('£')[1])
       .map(Number.parseFloat)
 
     // Already free or has gifting restrictions

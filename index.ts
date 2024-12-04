@@ -18,6 +18,8 @@ const job = async () => {
     text: string,
     options?: { [key: string]: unknown },
   ) => {
+    if (Deno.env.get('DRY_MODE') === 'true') return
+
     const body = {
       chat_id: BOT_CHAT,
       text,

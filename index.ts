@@ -129,7 +129,7 @@ const job = async () => {
         )
 
         await kv.set([`${name}-${discount}`], true, {
-          expireIn: 60 * 60 * 24 * 7 * 1000, // 7 days expiry
+          expireIn: 60 * 60 * 24 * 14 * 1000, // 2 weeks expiry
         })
       }
       console.debug(name, 'discounted', `${discount}%`, 'sent notification')

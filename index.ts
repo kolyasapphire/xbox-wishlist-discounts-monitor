@@ -92,6 +92,7 @@ const job = async () => {
 
     const link = info[0].getAttribute('href')
 
+    // [fullPrice, discountedPrice]
     const prices = priceRaw
       .querySelectorAll('span')
       .map((x) => x.text)

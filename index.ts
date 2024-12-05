@@ -156,7 +156,7 @@ const job = async () => {
       minPriceBonus = Number.parseFloat(isFree ? '0.0' : discountedBonus.textContent.slice(1))
       minPricePercentBonus = isFree ? 100 : Math.round((1 - minPriceBonus / prices[0]) * 100)
 
-      shouldGet = prices[1] <= minPrice || prices[1] <= minPriceBonus
+      shouldGet = prices[1] <= minPriceBonus || prices[1] <= minPrice
     } catch (e: unknown) {
       console.error(name, 'Failed to get mimimum prices:', (e as Error).message)
     }

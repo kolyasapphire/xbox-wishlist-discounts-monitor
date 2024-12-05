@@ -153,7 +153,7 @@ const job = async () => {
       )
       if (!discountedBonus) throw new Error('Could not parse discounted bonus price on game page')
       const isFree = discountedBonus.textContent === 'Free'
-      minPriceBonus = Number.parseFloat(isFree ? discountedBonus.textContent.slice(1) : '0.0')
+      minPriceBonus = Number.parseFloat(isFree ? '0.0' : discountedBonus.textContent.slice(1))
       minPricePercentBonus = isFree ? 100 : Math.round((1 - minPriceBonus / prices[0]) * 100)
 
       shouldGet = prices[1] <= minPrice || prices[1] <= minPriceBonus

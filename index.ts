@@ -162,6 +162,8 @@ const job = async () => {
         minPricePercentBonus = isFree ? 100 : Math.round((1 - minPriceBonus / prices[0]) * 100)
         const trueMinimum = minPrice < minPriceBonus ? minPrice : minPriceBonus
         shouldGet = prices[1] <= trueMinimum
+      } else {
+        shouldGet = prices[1] <= minPrice
       }
     } catch (e: unknown) {
       console.error(name, 'Failed to get mimimum prices:', (e as Error).message)

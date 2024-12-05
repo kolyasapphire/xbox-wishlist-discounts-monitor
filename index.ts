@@ -166,15 +166,15 @@ const job = async () => {
         const lines = [
           `${name} by ${publisher}`,
           '', // spacer
-          `${discount}% ($${prices[0]} -> $${prices[1]})`,
+          `${discount}% (£${prices[0]} -> £${prices[1]})`,
           '', // spacer
         ]
 
         if (minPrice) {
           lines.push(
             'Historical minimum:',
-            `${minPricePercent}% ($${minPrice})`,
-            `${minPricePercentBonus}% ($${minPriceBonus}) with Game Pass`,
+            `${minPricePercent}% (£${minPrice})`,
+            `${minPricePercentBonus}% (£${minPriceBonus}) with Game Pass`,
             '',
           )
         }

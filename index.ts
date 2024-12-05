@@ -154,7 +154,7 @@ const job = async () => {
         '.game-stats-price-history > div:nth-child(3) > p.game-stats-col-number > span',
       )
       if (!discountedBonus) throw new Error('Could not parse discounted bonus price on game page')
-      const isFree = discountedBonus.textContent === 'Free'
+      const isFree = discountedBonus.textContent === 'FREE'
       const hasBonusPrice = discountedBonus.textContent !== '--'
 
       if (hasBonusPrice) {

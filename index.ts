@@ -153,11 +153,14 @@ const job = async () => {
       )
       if (!discountedBonus) throw new Error('Could not parse discounted bonus price on game page')
       const isFree = discountedBonus.textContent === 'Free'
-      minPriceBonus = Number.parseFloat(isFree ? '0.0' : discountedBonus.textContent.slice(1))
-      minPricePercentBonus = isFree ? 100 : Math.round((1 - minPriceBonus / prices[0]) * 100)
+      const hasBonusPrice = discountedBonus.textContent !== '--'
 
-      const trueMinimum = minPrice < minPriceBonus ? minPrice : minPriceBonus
-      shouldGet = prices[1] <= trueMinimum
+      if (hasBonusPrice) {
+        minPriceBonus = Number.parseFloat(isFree ? '0.0' : discountedBonus.textContent.slice(1))
+        minPricePercentBonus = isFree ? 100 : Math.round((1 - minPriceBonus / prices[0]) * 100)
+        const trueMinimum = minPrice < minPriceBonus ? minPrice : minPriceBonus
+        shouldGet = prices[1] <= trueMinimum
+      }
     } catch (e: unknown) {
       console.error(name, 'Failed to get mimimum prices:', (e as Error).message)
     }
@@ -172,12 +175,11 @@ const job = async () => {
         ]
 
         if (minPrice) {
-          lines.push(
-            'Historical minimum:',
-            `${minPricePercent}% (£${minPrice})`,
-            `${minPricePercentBonus}% (£${minPriceBonus}) with Game Pass`,
-            '',
-          )
+          lines.push('Historical minimum:', `${minPricePercent}% (£${minPrice})`)
+          if (minPriceBonus) {
+            lines.push(`${minPricePercentBonus}% (£${minPriceBonus}) with Game Pass`)
+          }
+          lines.push('')
         }
 
         if (shouldGet) lines.push('Get it now!', '')

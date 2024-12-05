@@ -173,8 +173,8 @@ const job = async () => {
         if (minPrice) {
           lines.push(
             'Historical minimum:',
-            `$${minPrice} (${minPricePercent}% discount)`,
-            `$${minPriceBonus} (${minPricePercentBonus}% discount) with Game Pass`,
+            `${minPricePercent}% ($${minPrice})`,
+            `${minPricePercentBonus}% ($${minPriceBonus}) with Game Pass`,
             '',
           )
         }

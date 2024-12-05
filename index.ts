@@ -160,22 +160,25 @@ const job = async () => {
 
     if (discount >= Number.parseInt(MIN_DISCOUNT_PERCENT)) {
       if (!(await kv.get([`${name}-${discount}`])).value) {
-        await sendMessage(
-          [
-            `${name} by ${publisher}`,
-            '', // spacer
-            `${discount}% ($${prices[0]} -> $${prices[1]})`,
-            '', // spacer
-            ...(minPrice
-              ? [
-                `Historical minimum: $${minPrice} (${minPricePercent}% discount) and $${minPriceBonus} (${minPricePercentBonus}% discount) with Game Pass`,
-                '', // spacer
-              ]
-              : []),
-            link,
-          ].join('\n'),
-          { parse_mode: 'HTML' },
-        )
+        const lines = [
+          `${name} by ${publisher}`,
+          '', // spacer
+          `${discount}% ($${prices[0]} -> $${prices[1]})`,
+          '', // spacer
+        ]
+
+        if (minPrice) {
+          lines.push(
+            'Historical minimum:',
+            `$${minPrice} (${minPricePercent}% discount)`,
+            `$${minPriceBonus} (${minPricePercentBonus}% discount) with Game Pass`,
+            '',
+          )
+        }
+
+        if (link) lines.push(link)
+
+        await sendMessage(lines.join('\n'), { parse_mode: 'HTML' })
 
         await kv.set([`${name}-${discount}`], true, {
           expireIn: 60 * 60 * 24 * 14 * 1000, // 2 weeks expiry

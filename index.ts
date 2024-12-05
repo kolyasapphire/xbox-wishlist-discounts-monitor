@@ -73,9 +73,11 @@ const job = async () => {
     // Notify in channel and pause running via kv for some time
     if (!(await kv.get(['broken'])).value) {
       await sendMessage('Parsing broke :(', { parse_mode: 'HTML' })
-      await kv.set(['broken'], true, {
-        expireIn: 60 * 60 * 24 * 3 * 1000, // 3 days expiry
-      })
+      if (Deno.env.get('NO_CACHE') !== 'true') {
+        await kv.set(['broken'], true, {
+          expireIn: 60 * 60 * 24 * 3 * 1000, // 3 days expiry
+        })
+      }
     } else {
       console.debug('already notified that parsing broke')
     }
@@ -188,9 +190,11 @@ const job = async () => {
 
         await sendMessage(lines.join('\n'), { parse_mode: 'HTML' })
 
-        await kv.set([`${name}-${discount}`], true, {
-          expireIn: 60 * 60 * 24 * 14 * 1000, // 2 weeks expiry
-        })
+        if (Deno.env.get('NO_CACHE') !== 'true') {
+          await kv.set([`${name}-${discount}`], true, {
+            expireIn: 60 * 60 * 24 * 14 * 1000, // 2 weeks expiry
+          })
+        }
 
         console.debug(name, 'discounted', `${discount}%`, 'sent notification')
       } else {

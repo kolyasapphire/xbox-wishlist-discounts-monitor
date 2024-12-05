@@ -117,59 +117,59 @@ const job = async () => {
 
     const discount = Math.round((1 - prices[1] / prices[0]) * 100)
 
-    let minPrice: number | undefined
-    let minPricePercent: number | undefined
-    let minPriceBonus: number | undefined
-    let minPricePercentBonus: number | undefined
-    let shouldGet = false
-
-    try {
-      const searchRes = await fetch(`https://xbdeals.net/gb-store/search?search_query=${name}`)
-      const searchBody = await searchRes.text()
-      const searchParsed = parse(searchBody)
-      const games = searchParsed.querySelectorAll('.game-collection-item-link')
-      if (!games.length) throw new Error('Parsing search page failed')
-
-      const ourGame = games.find((x) => {
-        const price = x.querySelector('.game-collection-item-price')
-        if (!price) throw new Error('No price class on search page')
-        const parsedPrice = Number.parseFloat(price.textContent.slice(1))
-        return parsedPrice === prices[0]
-      })
-
-      if (!ourGame) throw new Error('Our game is not on search page')
-
-      const gameRes = await fetch(`https://xbdeals.net${ourGame.attributes.href}`)
-      const gameBody = await gameRes.text()
-      const gameParsed = parse(gameBody)
-
-      const discounted = gameParsed.querySelector(
-        '.game-stats-price-history > div:nth-child(2) > p.game-stats-col-number > span',
-      )
-      if (!discounted) throw new Error('Could not parse discounted price on game page')
-      minPrice = Number.parseFloat(discounted.textContent.slice(1))
-      minPricePercent = Math.round((1 - minPrice / prices[0]) * 100)
-
-      const discountedBonus = gameParsed.querySelector(
-        '.game-stats-price-history > div:nth-child(3) > p.game-stats-col-number > span',
-      )
-      if (!discountedBonus) throw new Error('Could not parse discounted bonus price on game page')
-      const isFree = discountedBonus.textContent === 'FREE'
-      const hasBonusPrice = discountedBonus.textContent !== '--'
-
-      if (hasBonusPrice) {
-        minPriceBonus = Number.parseFloat(isFree ? '0.0' : discountedBonus.textContent.slice(1))
-        minPricePercentBonus = isFree ? 100 : Math.round((1 - minPriceBonus / prices[0]) * 100)
-        const trueMinimum = minPrice < minPriceBonus ? minPrice : minPriceBonus
-        shouldGet = prices[1] <= trueMinimum
-      } else {
-        shouldGet = prices[1] <= minPrice
-      }
-    } catch (e: unknown) {
-      console.error(name, 'Failed to get mimimum prices:', (e as Error).message)
-    }
-
     if (discount >= Number.parseInt(MIN_DISCOUNT_PERCENT)) {
+      let minPrice: number | undefined
+      let minPricePercent: number | undefined
+      let minPriceBonus: number | undefined
+      let minPricePercentBonus: number | undefined
+      let shouldGet = false
+
+      try {
+        const searchRes = await fetch(`https://xbdeals.net/gb-store/search?search_query=${name}`)
+        const searchBody = await searchRes.text()
+        const searchParsed = parse(searchBody)
+        const games = searchParsed.querySelectorAll('.game-collection-item-link')
+        if (!games.length) throw new Error('Parsing search page failed')
+
+        const ourGame = games.find((x) => {
+          const price = x.querySelector('.game-collection-item-price')
+          if (!price) throw new Error('No price class on search page')
+          const parsedPrice = Number.parseFloat(price.textContent.slice(1))
+          return parsedPrice === prices[0]
+        })
+
+        if (!ourGame) throw new Error('Our game is not on search page')
+
+        const gameRes = await fetch(`https://xbdeals.net${ourGame.attributes.href}`)
+        const gameBody = await gameRes.text()
+        const gameParsed = parse(gameBody)
+
+        const discounted = gameParsed.querySelector(
+          '.game-stats-price-history > div:nth-child(2) > p.game-stats-col-number > span',
+        )
+        if (!discounted) throw new Error('Could not parse discounted price on game page')
+        minPrice = Number.parseFloat(discounted.textContent.slice(1))
+        minPricePercent = Math.round((1 - minPrice / prices[0]) * 100)
+
+        const discountedBonus = gameParsed.querySelector(
+          '.game-stats-price-history > div:nth-child(3) > p.game-stats-col-number > span',
+        )
+        if (!discountedBonus) throw new Error('Could not parse discounted bonus price on game page')
+        const isFree = discountedBonus.textContent === 'FREE'
+        const hasBonusPrice = discountedBonus.textContent !== '--'
+
+        if (hasBonusPrice) {
+          minPriceBonus = Number.parseFloat(isFree ? '0.0' : discountedBonus.textContent.slice(1))
+          minPricePercentBonus = isFree ? 100 : Math.round((1 - minPriceBonus / prices[0]) * 100)
+          const trueMinimum = minPrice < minPriceBonus ? minPrice : minPriceBonus
+          shouldGet = prices[1] <= trueMinimum
+        } else {
+          shouldGet = prices[1] <= minPrice
+        }
+      } catch (e: unknown) {
+        console.error(name, 'Failed to get mimimum prices:', (e as Error).message)
+      }
+
       if (!(await kv.get([`${name}-${discount}`])).value) {
         const lines = [
           `${name} by ${publisher}`,

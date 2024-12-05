@@ -119,6 +119,7 @@ const job = async () => {
     let minPricePercent: number | undefined
     let minPriceBonus: number | undefined
     let minPricePercentBonus: number | undefined
+    let shouldGet = false
 
     try {
       const searchRes = await fetch(`https://xbdeals.net/gb-store/search?search_query=${name}`)
@@ -154,6 +155,8 @@ const job = async () => {
       const isFree = discountedBonus.textContent === 'Free'
       minPriceBonus = Number.parseFloat(isFree ? discountedBonus.textContent.slice(1) : '0.0')
       minPricePercentBonus = isFree ? 100 : Math.round((1 - minPriceBonus / prices[0]) * 100)
+
+      shouldGet = prices[1] <= minPrice || prices[1] <= minPriceBonus
     } catch (e: unknown) {
       console.error(name, 'Failed to get mimimum prices:', (e as Error).message)
     }
@@ -175,6 +178,8 @@ const job = async () => {
             '',
           )
         }
+
+        if (shouldGet) lines.push('Get it now!', '')
 
         if (link) lines.push(link)
 

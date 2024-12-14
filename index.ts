@@ -183,6 +183,9 @@ const job = async () => {
           if (minPriceBonus !== undefined) {
             lines.push(`${minPricePercentBonus}% (£${minPriceBonus}) with Game Pass`)
           }
+          if (minPriceBonus === 0) {
+            lines.push('Was free on Game Pass, check if it is now!')
+          }
           lines.push('')
         }
 

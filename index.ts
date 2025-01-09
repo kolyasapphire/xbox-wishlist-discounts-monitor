@@ -128,6 +128,7 @@ const job = async () => {
       let minPriceBonus: number | undefined
       let minPricePercentBonus: number | undefined
       let shouldGet = false
+      let couldNotGetHistorical = false
 
       try {
         const searchRes = await fetch(`https://xbdeals.net/gb-store/search?search_query=${name}`)
@@ -173,6 +174,7 @@ const job = async () => {
         }
       } catch (e: unknown) {
         console.error(name, 'Failed to get mimimum prices:', (e as Error).message)
+        couldNotGetHistorical = true
       }
 
       const lines = [
@@ -194,6 +196,8 @@ const job = async () => {
       }
 
       if (shouldGet) lines.push('Get it now!', '')
+
+      if (couldNotGetHistorical) lines.push('Could not get historical prices :(', '')
 
       if (link) lines.push(link)
 

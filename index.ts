@@ -117,6 +117,11 @@ const job = async () => {
 
     const discount = Math.round((1 - prices[1] / prices[0]) * 100)
 
+    if ((await kv.get([`${name}-${discount}`])).value) {
+      console.debug(name, 'discounted', `${discount}%`, 'already notified')
+      continue
+    }
+
     if (discount >= Number.parseInt(MIN_DISCOUNT_PERCENT)) {
       let minPrice: number | undefined
       let minPricePercent: number | undefined
@@ -170,41 +175,37 @@ const job = async () => {
         console.error(name, 'Failed to get mimimum prices:', (e as Error).message)
       }
 
-      if (!(await kv.get([`${name}-${discount}`])).value) {
-        const lines = [
-          `${name} by ${publisher}`,
-          '', // spacer
-          `${discount}% (£${prices[0]} -> £${prices[1]})`,
-          '', // spacer
-        ]
+      const lines = [
+        `${name} by ${publisher}`,
+        '', // spacer
+        `${discount}% (£${prices[0]} -> £${prices[1]})`,
+        '', // spacer
+      ]
 
-        if (minPrice) {
-          lines.push('Historical minimum:', `${minPricePercent}% (£${minPrice})`)
-          if (minPriceBonus !== undefined) {
-            lines.push(`${minPricePercentBonus}% (£${minPriceBonus}) with Game Pass`)
-          }
-          if (minPriceBonus === 0) {
-            lines.push('Was free on Game Pass, check if it is now!')
-          }
-          lines.push('')
+      if (minPrice) {
+        lines.push('Historical minimum:', `${minPricePercent}% (£${minPrice})`)
+        if (minPriceBonus !== undefined) {
+          lines.push(`${minPricePercentBonus}% (£${minPriceBonus}) with Game Pass`)
         }
-
-        if (shouldGet) lines.push('Get it now!', '')
-
-        if (link) lines.push(link)
-
-        await sendMessage(lines.join('\n'), { parse_mode: 'HTML' })
-
-        if (Deno.env.get('NO_CACHE') !== 'true') {
-          await kv.set([`${name}-${discount}`], true, {
-            expireIn: 60 * 60 * 24 * 14 * 1000, // 2 weeks expiry
-          })
+        if (minPriceBonus === 0) {
+          lines.push('Was free on Game Pass, check if it is now!')
         }
-
-        console.debug(name, 'discounted', `${discount}%`, 'sent notification')
-      } else {
-        console.debug(name, 'discounted', `${discount}%`, 'already notified')
+        lines.push('')
       }
+
+      if (shouldGet) lines.push('Get it now!', '')
+
+      if (link) lines.push(link)
+
+      await sendMessage(lines.join('\n'), { parse_mode: 'HTML' })
+
+      if (Deno.env.get('NO_CACHE') !== 'true') {
+        await kv.set([`${name}-${discount}`], true, {
+          expireIn: 60 * 60 * 24 * 14 * 1000, // 2 weeks expiry
+        })
+      }
+
+      console.debug(name, 'discounted', `${discount}%`, 'sent notification')
     } else {
       console.debug(name, 'discount too low', `(${discount}%)`)
     }

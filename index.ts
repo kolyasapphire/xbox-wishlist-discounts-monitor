@@ -177,6 +177,14 @@ const job = async () => {
         couldNotGetHistorical = true
       }
 
+      const ourHistoricalMinimum = (await kv.get<number>(['historicalMinimum', name])).value
+
+      if (ourHistoricalMinimum) {
+        minPrice = ourHistoricalMinimum
+        minPricePercent = Math.round((1 - ourHistoricalMinimum / prices[0]) * 100)
+        shouldGet = prices[1] <= ourHistoricalMinimum
+      }
+
       const lines = [
         `${name} by ${publisher}`,
         '', // spacer
@@ -197,7 +205,7 @@ const job = async () => {
 
       if (shouldGet) lines.push('Get it now!', '')
 
-      if (couldNotGetHistorical) lines.push('Could not get historical prices :(', '')
+      if (couldNotGetHistorical) lines.push('Could not get full historical prices :(', '')
 
       if (link) lines.push(link)
 
@@ -207,6 +215,11 @@ const job = async () => {
         await kv.set([`${name}-${discount}`], true, {
           expireIn: 60 * 60 * 24 * 14 * 1000, // 2 weeks expiry
         })
+        if (!ourHistoricalMinimum || prices[1] < ourHistoricalMinimum) {
+          await kv.set(['historicalMinimum', name], prices[1], {
+            expireIn: 60 * 60 * 24 * 7 * 4 * 12 * 1000, // 1 year expiry
+          })
+        }
       }
 
       console.debug(name, 'discounted', `${discount}%`, 'sent notification')

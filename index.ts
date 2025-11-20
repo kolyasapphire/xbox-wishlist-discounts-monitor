@@ -1,7 +1,8 @@
-import { parse } from 'node-html-parser'
 import { load } from '@std/dotenv'
-
 await load({ export: true })
+
+import { createSendMessage } from './sendMessage.ts'
+import { getWishlist } from './getWishlist.ts'
 
 const WISHLIST_ID = Deno.env.get('WISHLIST_ID')
 const MIN_DISCOUNT_PERCENT = Deno.env.get('MIN_DISCOUNT_PERCENT') // percentage
@@ -14,65 +15,18 @@ const job = async () => {
     return
   }
 
-  const sendMessage = async (
-    text: string,
-    options?: { [key: string]: unknown },
-  ) => {
-    if (Deno.env.get('DRY_MODE') === 'true') return
-
-    const body = {
-      chat_id: BOT_CHAT,
-      text,
-      ...options,
-    }
-
-    const req = await fetch(
-      `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      },
-    )
-
-    if (!req.ok) {
-      console.error(await req.json())
-    }
-  }
-
-  const res = await fetch(
-    `https://www.xbox.com/en-GB/wishlist/${WISHLIST_ID}`,
-    {
-      headers: {
-        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Accept-Language': 'en-GB,en;q=0.9',
-        Connection: 'keep-alive',
-        Cookie:
-          'MUID=6E62D6A40F8044868A00E473B73CF8B5; MicrosoftApplicationsTelemetryDeviceId=f8162252-c2b1-4548-852a-6b8a1346291c; ai_session=2N7Uvd7PS2e7LMEnvlIKgM|1714583942031|1714583942503; aka_locale=en-us',
-        Host: 'www.xbox.com',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
-        'User-Agent':
-          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Safari/605.1.15',
-      },
-    },
-  )
-  const text = await res.text()
-  const parsed = parse(text)
-
-  const rows = parsed.querySelector('#PageContent > div > div > div')
+  const sendMessage = createSendMessage({ BOT_TOKEN, BOT_CHAT })
 
   const kv = await Deno.openKv()
 
-  // HTML has changed
-  if (!rows) {
+  let games: Awaited<ReturnType<typeof getWishlist>>
+
+  try {
+    games = await getWishlist(WISHLIST_ID)
+  } catch (_e) {
     // Notify in channel and pause running via kv for some time
     if (!(await kv.get(['broken'])).value) {
-      await sendMessage('Parsing broke :(', { parse_mode: 'HTML' })
+      await sendMessage('Parsing broke :(')
       if (Deno.env.get('NO_CACHE') !== 'true') {
         await kv.set(['broken'], true, {
           expireIn: 60 * 60 * 24 * 3 * 1000, // 3 days expiry
@@ -81,11 +35,8 @@ const job = async () => {
     } else {
       console.debug('already notified that parsing broke')
     }
-
     return
   }
-
-  const games = rows.querySelectorAll('div > div > div:nth-child(2)')
 
   console.debug('Parsed', games.length, 'games')
 
@@ -125,57 +76,7 @@ const job = async () => {
     if (discount >= Number.parseInt(MIN_DISCOUNT_PERCENT, 10)) {
       let minPrice: number | undefined
       let minPricePercent: number | undefined
-      let minPriceBonus: number | undefined
-      let minPricePercentBonus: number | undefined
       let shouldGet = false
-      let couldNotGetHistorical = false
-
-      try {
-        const searchRes = await fetch(`https://xbdeals.net/gb-store/search?search_query=${name}`)
-        const searchBody = await searchRes.text()
-        const searchParsed = parse(searchBody)
-        const games = searchParsed.querySelectorAll('.game-collection-item-link')
-        if (!games.length) throw new Error('Parsing search page failed')
-
-        const ourGame = games.find((x) => {
-          const price = x.querySelector('.game-collection-item-price')
-          if (!price) throw new Error('No price class on search page')
-          const parsedPrice = Number.parseFloat(price.textContent.slice(1))
-          return parsedPrice === prices[0]
-        })
-
-        if (!ourGame) throw new Error('Our game is not on search page')
-
-        const gameRes = await fetch(`https://xbdeals.net${ourGame.attributes.href}`)
-        const gameBody = await gameRes.text()
-        const gameParsed = parse(gameBody)
-
-        const discounted = gameParsed.querySelector(
-          '.game-stats-price-history > div:nth-child(2) > p.game-stats-col-number > span',
-        )
-        if (!discounted) throw new Error('Could not parse discounted price on game page')
-        minPrice = Number.parseFloat(discounted.textContent.slice(1))
-        minPricePercent = Math.round((1 - minPrice / prices[0]) * 100)
-
-        const discountedBonus = gameParsed.querySelector(
-          '.game-stats-price-history > div:nth-child(3) > p.game-stats-col-number > span',
-        )
-        if (!discountedBonus) throw new Error('Could not parse discounted bonus price on game page')
-        const isFree = discountedBonus.textContent === 'FREE'
-        const hasBonusPrice = discountedBonus.textContent !== '--'
-
-        if (hasBonusPrice) {
-          minPriceBonus = Number.parseFloat(isFree ? '0.0' : discountedBonus.textContent.slice(1))
-          minPricePercentBonus = isFree ? 100 : Math.round((1 - minPriceBonus / prices[0]) * 100)
-          const trueMinimum = minPrice < minPriceBonus ? minPrice : minPriceBonus
-          shouldGet = prices[1] <= trueMinimum
-        } else {
-          shouldGet = prices[1] <= minPrice
-        }
-      } catch (e: unknown) {
-        console.error(name, 'Failed to get mimimum prices:', (e as Error).message)
-        couldNotGetHistorical = true
-      }
 
       const ourHistoricalMinimum = (await kv.get<number>(['historicalMinimum', name])).value
 
@@ -192,20 +93,9 @@ const job = async () => {
         '', // spacer
       ]
 
-      if (minPrice) {
-        lines.push('Historical minimum:', `${minPricePercent}% (£${minPrice})`)
-        if (minPriceBonus !== undefined) {
-          lines.push(`${minPricePercentBonus}% (£${minPriceBonus}) with Game Pass`)
-        }
-        if (minPriceBonus === 0) {
-          lines.push('Was free on Game Pass, check if it is now!')
-        }
-        lines.push('')
-      }
+      if (minPrice) lines.push('Historical minimum:', `${minPricePercent}% (£${minPrice})`, '')
 
       if (shouldGet) lines.push('Get it now!', '')
-
-      if (couldNotGetHistorical) lines.push('Could not get full historical prices :(', '')
 
       if (link) lines.push(link)
 

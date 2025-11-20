@@ -122,7 +122,7 @@ const job = async () => {
       continue
     }
 
-    if (discount >= Number.parseInt(MIN_DISCOUNT_PERCENT)) {
+    if (discount >= Number.parseInt(MIN_DISCOUNT_PERCENT, 10)) {
       let minPrice: number | undefined
       let minPricePercent: number | undefined
       let minPriceBonus: number | undefined

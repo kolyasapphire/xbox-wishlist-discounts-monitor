@@ -15,24 +15,7 @@ const sendMessage = createSendMessage({ BOT_TOKEN, BOT_CHAT })
 
 const kv = await Deno.openKv()
 
-let games: Awaited<ReturnType<typeof getWishlist>>
-
-try {
-  games = await getWishlist(WISHLIST_ID)
-} catch (_e) {
-  // Notify in channel and pause running via kv for some time
-  if (!(await kv.get(['broken'])).value) {
-    await sendMessage('Parsing broke :(')
-    if (Deno.env.get('NO_CACHE') !== 'true') {
-      await kv.set(['broken'], true, {
-        expireIn: 60 * 60 * 24 * 3 * 1000, // 3 days expiry
-      })
-    }
-  } else {
-    console.debug('already notified that parsing broke')
-  }
-  Deno.exit(1)
-}
+const games = await getWishlist(WISHLIST_ID)
 
 console.debug('Parsed', games.length, 'games')
 

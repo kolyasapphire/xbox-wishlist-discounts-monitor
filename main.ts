@@ -7,9 +7,9 @@ import { getWishlist } from './getWishlist.ts'
 const WISHLIST_ID = Deno.env.get('WISHLIST_ID')
 const MIN_DISCOUNT_PERCENT = Deno.env.get('MIN_DISCOUNT_PERCENT') // percentage
 const BOT_TOKEN = Deno.env.get('BOT_TOKEN')
-const BOT_CHAT = Deno.env.get('BOT_CHAT')
+const BOT_CHAT = Deno.env.get('BOT_CHAT') || '-1002125188525'
 
-if (!WISHLIST_ID || !MIN_DISCOUNT_PERCENT || !BOT_TOKEN || !BOT_CHAT) throw new Error('Bad config')
+if (!WISHLIST_ID || !MIN_DISCOUNT_PERCENT || !BOT_TOKEN) throw new Error('Bad config')
 
 const sendMessage = createSendMessage({ BOT_TOKEN, BOT_CHAT })
 

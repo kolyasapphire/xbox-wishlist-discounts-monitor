@@ -1,12 +1,13 @@
 import { createSendMessage } from './sendMessage.ts'
 import { getWishlist } from './getWishlist.ts'
 
-interface Env {
+export interface Env {
   KV: KVNamespace
   WISHLIST_ID: string
   MIN_DISCOUNT_PERCENT: string
   TELEGRAM_BOT_TOKEN: string
   TELEGRAM_CHAT_ID?: string
+  FIRST_RUN?: string
 }
 
 const job: ExportedHandler<Env>['scheduled'] = async (_, env) => {

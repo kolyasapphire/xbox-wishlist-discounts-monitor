@@ -1,9 +1,12 @@
+import { env } from '@cloudflare/workers-types'
+import type { Env } from './main.ts'
+
 export const createSendMessage = ({ chatId, token }: { chatId: string; token: string }) =>
 async (
   text: string,
   options?: { [key: string]: unknown },
 ) => {
-  if (Deno.env.get('DRY_MODE') === 'true') return
+  if ((env as Env).FIRST_RUN) return
 
   const body = {
     chat_id: chatId,

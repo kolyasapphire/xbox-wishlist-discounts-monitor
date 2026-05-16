@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "node-html-parser": "6.1.13",
     "wrangler": "^4.92.0"
   }
 }

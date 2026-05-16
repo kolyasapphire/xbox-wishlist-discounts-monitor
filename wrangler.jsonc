@@ -1,0 +1,23 @@
+{
+  "$schema": "https://unpkg.com/wrangler/config-schema.json",
+  "name": "xbox-wishlist-discounts-monitor",
+  "main": "main.ts",
+  "compatibility_date": "2026-05-12",
+  "compatibility_flags": [],
+  "keep_vars": true,
+  "secrets": {
+    "required": ["TELEGRAM_BOT_TOKEN"],
+  },
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "81f2aa05ac6a40c0a682840f2210e72d",
+    },
+  ],
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true,
+    },
+  },
+}

@@ -1,4 +1,4 @@
-import { env } from '@cloudflare/workers-types'
+import { env } from 'cloudflare:workers'
 import type { Env } from './main.ts'
 
 export const createSendMessage = ({ chatId, token }: { chatId: string; token: string }) =>
